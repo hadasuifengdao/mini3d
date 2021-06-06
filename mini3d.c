@@ -32,6 +32,8 @@ typedef struct { float m[4][4]; } matrix_t;
 typedef struct { float x, y, z, w; } vector_t;
 typedef vector_t point_t;
 
+int DrawTriangleCount = 0;
+
 int CMID(int x, int min, int max) { return (x < min)? min : ((x > max)? max : x); }
 
 // 计算插值：t 为 [0, 1] 之间的数值
@@ -716,6 +718,7 @@ void device_draw_primitive(device_t *device, const vertex_t *v1,
 		device_draw_line(device, (int)p1.x, (int)p1.y, (int)p3.x, (int)p3.y, device->foreground);
 		device_draw_line(device, (int)p3.x, (int)p3.y, (int)p2.x, (int)p2.y, device->foreground);
 	}
+	DrawTriangleCount++;
 }
 
 
@@ -929,8 +932,10 @@ int main(void)
 	init_texture(&device);
 	device.render_state = RENDER_STATE_TEXTURE;
 	while (screen_exit == 0 && screen_keys[VK_ESCAPE] == 0) {
-		//获取当前时间
+		//获取当前时间、绘制三角形计数
 		ULONGLONG StarTime = GetTime();
+		DrawTriangleCount = 0.f;
+
 		screen_dispatch();
 		device_clear(&device, 1);
 		camera_at_zero(&device, pos, 0, 0);
@@ -952,10 +957,13 @@ int main(void)
 		draw_box(&device, alpha);
 		screen_update();
 		Sleep(1);
+		//打印FPS
 		ULONGLONG EndTime = GetTime();
 		double DelaTime = EndTime - StarTime;
 		double FPS = 1000.f / DelaTime;
 		printf("FPS: %lf \n", FPS);
+		
+		printf("DrawTriangleCount:%d\n", DrawTriangleCount);
 	}
 	return 0;
 }
