@@ -673,6 +673,24 @@ void device_draw_primitive(device_t *device, const vertex_t *v1,
 	point_t p1, p2, p3, c1, c2, c3;
 	int render_state = device->render_state;
 
+	//背面剔除
+	vector_t v1tov2, v1tov3, TriangleNormal;
+	vector_sub(&v1tov2, &v2->pos, &v1->pos);
+	vector_sub(&v1tov3, &v3->pos, &v1->pos);
+	vector_crossproduct(&TriangleNormal, &v1tov2, &v1tov3);
+	matrix_apply(&TriangleNormal, &TriangleNormal, &device->transform.world);
+	vector_normalize(&TriangleNormal);
+
+	//view方向
+	vector_t viewDir = { device->transform.view.m[0][2],device->transform.view.m[1][2],device->transform.view.m[2][2] };
+	//view方向和TriangleNormal 夹角如果小于90度认为是在背面
+	float TriNormalVieDirDotValue = vector_dotproduct(&viewDir, &TriangleNormal);
+	if (TriNormalVieDirDotValue > 0)
+	{
+		return;
+	}
+
+
 	// 按照 Transform 变化
 	transform_apply(&device->transform, &c1, &v1->pos);
 	transform_apply(&device->transform, &c2, &v2->pos);
@@ -688,6 +706,8 @@ void device_draw_primitive(device_t *device, const vertex_t *v1,
 	transform_homogenize(&device->transform, &p1, &c1);
 	transform_homogenize(&device->transform, &p2, &c2);
 	transform_homogenize(&device->transform, &p3, &c3);
+
+	
 
 	// 纹理或者色彩绘制
 	if (render_state & (RENDER_STATE_TEXTURE | RENDER_STATE_COLOR)) {
