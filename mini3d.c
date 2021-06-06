@@ -21,6 +21,7 @@
 
 #include <windows.h>
 #include <tchar.h>
+#include<time.h>
 
 typedef unsigned int IUINT32;
 
@@ -900,6 +901,13 @@ void init_texture(device_t *device) {
 	device_set_texture(device, texture, 256 * 4, 256, 256);
 }
 
+ULONGLONG  GetTime()
+{
+	DWORD start, stop;
+	start = GetTickCount64();
+	return start;
+}
+
 int main(void)
 {
 	device_t device;
@@ -920,8 +928,9 @@ int main(void)
 
 	init_texture(&device);
 	device.render_state = RENDER_STATE_TEXTURE;
-
 	while (screen_exit == 0 && screen_keys[VK_ESCAPE] == 0) {
+		//获取当前时间
+		ULONGLONG StarTime = GetTime();
 		screen_dispatch();
 		device_clear(&device, 1);
 		camera_at_zero(&device, pos, 0, 0);
@@ -940,10 +949,13 @@ int main(void)
 		}	else {
 			kbhit = 0;
 		}
-
 		draw_box(&device, alpha);
 		screen_update();
 		Sleep(1);
+		ULONGLONG EndTime = GetTime();
+		double DelaTime = EndTime - StarTime;
+		double FPS = 1000.f / DelaTime;
+		printf("FPS: %lf \n", FPS);
 	}
 	return 0;
 }
